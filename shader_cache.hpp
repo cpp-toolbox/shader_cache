@@ -107,8 +107,8 @@ class ShaderCache {
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
-         {"../../src/graphics/shaders/CWL_v_transformation_with_texture_position_passthrough.vert",
-          "../../src/graphics/shaders/textured.frag"}},
+         {"assets/shaders/CWL_v_transformation_with_texture_position_passthrough.vert",
+          "assets/shaders/textured.frag"}},
     };
 
     // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically

@@ -1,4 +1,5 @@
 #include "shader_cache.hpp"
+#include "sbpt_generated_includes.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -47,7 +48,7 @@ void ShaderCache::create_shader_program(ShaderType type) {
         throw std::runtime_error("Shader type not found");
     }
 
-    spdlog::info("creating new shader program");
+    spdlog::get(Systems::graphics)->info("creating new shader program");
 
     const ShaderCreationInfo &shader_info = it->second;
 
@@ -95,7 +96,7 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
         get_gl_vertex_attribute_configuration_for_vertex_attribute_variable(shader_vertex_attribute_variable);
     std::string svav_name = get_vertex_attribute_variable_name(shader_vertex_attribute_variable);
 
-    spdlog::info("Binding vertex attribute {}", svav_name);
+    spdlog::get(Systems::graphics)->info("Binding vertex attribute {}", svav_name);
 
     GLuint vertex_attribute_location = glGetAttribLocation(shader_program_info.id, svav_name.c_str());
     glEnableVertexAttribArray(vertex_attribute_location);
@@ -116,7 +117,9 @@ std::string ShaderCache::get_uniform_name(ShaderUniformVariable uniform) const {
     if (it != shader_uniform_variable_to_name.end()) {
         return it->second;
     }
-    spdlog::warn("Uniform variable enum {} not found in allowed names.", static_cast<int>(uniform));
+
+    spdlog::get(Systems::graphics)
+        ->warn("Uniform variable enum {} not found in allowed names.", static_cast<int>(uniform));
     return "";
 }
 
@@ -125,9 +128,10 @@ GLVertexAttributeConfiguration ShaderCache::get_gl_vertex_attribute_configuratio
     try {
         return shader_vertex_attribute_to_glva_configuration.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
-        spdlog::error(
-            "The specified shader vertex attribute variable doesn't have a gl vertex attribute configuration: {}",
-            e.what());
+        spdlog::get(Systems::graphics)
+            ->error(
+                "The specified shader vertex attribute variable doesn't have a gl vertex attribute configuration: {}",
+                e.what());
         throw;
     }
 }
@@ -137,7 +141,7 @@ ShaderCache::get_used_vertex_attribute_variables_for_shader(ShaderType type) con
     try {
         return shader_to_used_vertex_attribute_variables.at(type);
     } catch (const std::out_of_range &e) {
-        spdlog::error("The specified type doesn't have an entry in the mapping: {}", e.what());
+        spdlog::get(Systems::graphics)->error("The specified type doesn't have an entry in the mapping: {}", e.what());
         throw;
     }
 }
@@ -149,7 +153,8 @@ ShaderCache::get_vertex_attribute_variable_name(ShaderVertexAttributeVariable sh
         return shader_vertex_attribute_variable_to_name.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
         // Print the error message
-        spdlog::error("The specified vertex attribute variable doesn't have a name in the mapping: {}", e.what());
+        spdlog::get(Systems::graphics)
+            ->error("The specified vertex attribute variable doesn't have a name in the mapping: {}", e.what());
 
         // Rethrow the exception to continue propagating it upwards
         throw;
@@ -160,7 +165,7 @@ GLint ShaderCache::get_uniform_location(ShaderType type, ShaderUniformVariable u
     ShaderProgramInfo shader_info = get_shader_program(type);
     GLint location = glGetUniformLocation(shader_info.id, get_uniform_name(uniform).c_str());
     if (location == -1) {
-        spdlog::warn("Uniform '{}' not found in shader program.", get_uniform_name(uniform));
+        spdlog::get(Systems::graphics)->warn("Uniform '{}' not found in shader program.", get_uniform_name(uniform));
     }
     return location;
 }
@@ -264,7 +269,7 @@ GLuint ShaderCache::attach_shader(GLuint program, const std::string &path, GLenu
 
         shader_code = shader_stream.str();
     } catch (const std::ifstream::failure &e) {
-        spdlog::error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}: {}", path, e.what());
+        spdlog::get(Systems::graphics)->error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}: {}", path, e.what());
     }
 
     GLuint shader = glCreateShader(shader_type);
@@ -277,7 +282,7 @@ GLuint ShaderCache::attach_shader(GLuint program, const std::string &path, GLenu
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 1024, nullptr, info_log);
-        spdlog::error("ERROR::SHADER::COMPILATION_FAILED {}: {}", path, info_log);
+        spdlog::get(Systems::graphics)->error("ERROR::SHADER::COMPILATION_FAILED {}: {}", path, info_log);
     }
 
     glAttachShader(program, shader);
@@ -292,7 +297,7 @@ void ShaderCache::link_program(GLuint program) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, 1024, nullptr, info_log);
-        spdlog::error("ERROR::PROGRAM::LINKING_FAILED: {}", info_log);
+        spdlog::get(Systems::graphics)->error("ERROR::PROGRAM::LINKING_FAILED: {}", info_log);
     }
 }
 
@@ -308,11 +313,12 @@ std::string shader_type_to_string(ShaderType type) {
 }
 
 void ShaderCache::log_shader_program_info() const {
-    spdlog::info("Logging Created Shaders:");
-    spdlog::info("Total shaders: {}", created_shaders.size());
+    spdlog::get(Systems::graphics)->info("Logging Created Shaders:");
+    spdlog::get(Systems::graphics)->info("Total shaders: {}", created_shaders.size());
 
     for (const auto &[shader_type, shader_info] : created_shaders) {
-        spdlog::info("Shader Type: {}, Program ID: {}", shader_type_to_string(shader_type), shader_info.id);
+        spdlog::get(Systems::graphics)
+            ->info("Shader Type: {}, Program ID: {}", shader_type_to_string(shader_type), shader_info.id);
         // If more details are available, add them here
     }
 }
