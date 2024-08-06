@@ -1,24 +1,29 @@
-#ifndef SHADERCACHE_HPP
-#define SHADERCACHE_HPP
+#ifndef SHADER_CACHE_HPP
+#define SHADER_CACHE_HPP
 
 #include <glm/glm.hpp>
 #include <unordered_map>
 #include <string>
 #include <stdexcept>
-#include "spdlog/spdlog.h"
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "spdlog/spdlog.h"
 
-enum class ShaderType {
-    CWL_V_TRANSFORMATION_WITH_TEXTURES,
-};
+enum class ShaderType { CWL_V_TRANSFORMATION_WITH_TEXTURES, SKYBOX, ABSOLUTE_POSITION_WITH_SOLID_COLOR };
 
 enum class ShaderVertexAttributeVariable {
     POSITION,
     PASSTHROUGH_TEXTURE_COORDINATE,
 };
 
-enum class ShaderUniformVariable { CAMERA_TO_CLIP, WORLD_TO_CAMERA, LOCAL_TO_WORLD };
+enum class ShaderUniformVariable {
+    // Transformations
+    CAMERA_TO_CLIP,
+    WORLD_TO_CAMERA,
+    LOCAL_TO_WORLD,
+    // Textures
+    SKYBOX_TEXTURE_UNIT,
+    COLOR,
+};
 
 struct ShaderCreationInfo {
     std::string vertex_path;
@@ -41,13 +46,15 @@ struct GLVertexAttributeConfiguration {
 };
 
 /**
+ * \brief facilitates simple and robust interaction with shaders
+ *
  * \details a shader cache is a tool which helps manage shaders in a sane way, firstly the user defines what types of
  * shaders by passing in the requested shaders from the shader catalog, then that shader can be selected easily, it also
  * adheres to the cpp_toolbox standard for naming variables in shader files, this makes it easy to read shader files as
- * when you see a variable you will know exactly what it standard for.
+ * when you see a variable you will know exactly what it standard for. With these features it makes it hard to mess up
+ * when using shaders
  *
- * Also it takes the following approach which is to only create a single shader and store it here, when drawable objects
- * need to draw they use the correct shader from here.
+ * \usage See how it it used in DiffuseTexturedDiv and BaseDiv
  *
  */
 class ShaderCache {
@@ -56,7 +63,8 @@ class ShaderCache {
     ~ShaderCache();
 
     ShaderProgramInfo get_shader_program(ShaderType type) const;
-    void use_shader_program(ShaderType type) const;
+    void use_shader_program(ShaderType type);
+    void stop_using_shader_program();
     void create_shader_program(ShaderType type);
 
     void configure_vertex_attributes_for_drawables_vao(GLuint vertex_attribute_object, GLuint vertex_buffer_object,
@@ -100,15 +108,21 @@ class ShaderCache {
     };
 
     const std::unordered_map<ShaderUniformVariable, std::string> shader_uniform_variable_to_name = {
+        // Transformations
         {ShaderUniformVariable::CAMERA_TO_CLIP, "camera_to_clip"},
         {ShaderUniformVariable::WORLD_TO_CAMERA, "world_to_camera"},
         {ShaderUniformVariable::LOCAL_TO_WORLD, "local_to_world"},
-    };
+        // Textures
+        {ShaderUniformVariable::SKYBOX_TEXTURE_UNIT, "skybox_texture_unit"},
+        {ShaderUniformVariable::COLOR, "color"}};
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
-         {"assets/shaders/CWL_v_transformation_with_texture_position_passthrough.vert",
+         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured.frag"}},
+        {ShaderType::SKYBOX, {"assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag"}},
+        {ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
+         {"assets/shaders/absolute_position.vert", "assets/shaders/solid_color.frag"}},
     };
 
     // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
@@ -116,13 +130,14 @@ class ShaderCache {
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
              {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
+            {ShaderType::SKYBOX, {ShaderVertexAttributeVariable::POSITION}},
+            {ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
     };
 
     const std::unordered_map<ShaderVertexAttributeVariable, std::string> shader_vertex_attribute_variable_to_name = {
         {ShaderVertexAttributeVariable::POSITION, "position"},
-        {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_position"},
-
+        {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_coordinate"},
     };
 };
 
-#endif // SHADERCACHE_HPP
+#endif // SHADER_CACHE_HPP

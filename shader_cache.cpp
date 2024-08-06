@@ -36,10 +36,12 @@ ShaderProgramInfo ShaderCache::get_shader_program(ShaderType type) const {
     throw std::runtime_error("Shader program not found");
 }
 
-void ShaderCache::use_shader_program(ShaderType type) const {
+void ShaderCache::use_shader_program(ShaderType type) {
     ShaderProgramInfo shader_info = get_shader_program(type);
     glUseProgram(shader_info.id);
 }
+
+void ShaderCache::stop_using_shader_program() { glUseProgram(0); }
 
 void ShaderCache::create_shader_program(ShaderType type) {
 
@@ -75,7 +77,25 @@ void ShaderCache::create_shader_program(ShaderType type) {
 }
 
 /**
- * \todo make sure that the vertex attribute variable is actuall used in the selected shader type
+ * \todo make sure that the vertex attribute variable is actually used in the selected shader type
+ *
+ * \brief configures a VAO so that it knows how to transmit data from a VBO into the shader program
+ *
+ * \note this assumes that each vertex attribute data array has its own unique vector for storing (usually a
+ * std::vector<glm::vec3>>) [or whatever type of vector]
+ *
+ * \details a good way to think about this is that a shader program has a bunch of incoming conveyor belts, and we need
+ * to tell the shader program how big the boxes that are coming in are for each different conveyor belt, then this
+ * function is like a conveyor belt configuration, so that we say "BIG_BOXES" and then this function automates setting
+ * up the conveyor belt so that the shader program can properly consume those boxes,
+ *
+ * With this analogy VAOs are like employees in charge of physical objects, they have different types of objects, say
+ * toys, and books which are represented by VBOs they for each type of object, they need to configure how the
+ * conveyor belt will operate for each object type (ie, the books can be packed closer than the toys).
+ *
+ * This function is then like a "training session" for the employee so that they learn how to configure the conveyor
+ * belts, for their own custom objects this is done so that no matter what objects need to be packaged up, the
+ * corresponding employee will know how to properly do this.
  *
  * \param vertex_attribute_object the vao that we need to configure the vertex attributes for
  * \param vertex_buffer_object the buffer contiaining the vertex attribute data
@@ -86,10 +106,12 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
     ShaderVertexAttributeVariable shader_vertex_attribute_variable) {
 
     ShaderProgramInfo shader_program_info = get_shader_program(type);
-    std::vector<ShaderVertexAttributeVariable> used_vertex_attributes_for_shader =
-        get_used_vertex_attribute_variables_for_shader(type);
+    //    std::vector<ShaderVertexAttributeVariable> used_vertex_attributes_for_shader =
+    //        get_used_vertex_attribute_variables_for_shader(type);
 
-    glBindVertexArray(vertex_attribute_object);
+    glBindVertexArray(vertex_attribute_object); // enable the objects VAO
+    // this has to occur because glEnableVertexArray and glVertexAttribPointer need to know about two things
+    // the output and input we are configuring the communication between.
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
 
     GLVertexAttributeConfiguration config =
@@ -141,7 +163,9 @@ ShaderCache::get_used_vertex_attribute_variables_for_shader(ShaderType type) con
     try {
         return shader_to_used_vertex_attribute_variables.at(type);
     } catch (const std::out_of_range &e) {
-        spdlog::get(Systems::graphics)->error("The specified type doesn't have an entry in the mapping: {}", e.what());
+        spdlog::get(Systems::graphics)
+            ->error("The specified shader type doesn't have have any vertex attribute variables, please add some: {}",
+                    e.what());
         throw;
     }
 }
@@ -306,7 +330,10 @@ std::string shader_type_to_string(ShaderType type) {
     switch (type) {
     case ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES:
         return "CWL_V_TRANSFORMATION_WITH_TEXTURES";
-        // Add other cases as necessary
+    case ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR:
+        return "ABSOLUTE_POSITION_WITH_SOLID_COLOR";
+    case ShaderType::SKYBOX:
+        return "SKYBOX";
     default:
         return "Unknown Shader Type";
     }
