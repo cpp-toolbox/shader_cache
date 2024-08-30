@@ -8,10 +8,17 @@
 #include <glad/glad.h>
 #include "spdlog/spdlog.h"
 
-enum class ShaderType { CWL_V_TRANSFORMATION_WITH_TEXTURES, SKYBOX, ABSOLUTE_POSITION_WITH_SOLID_COLOR };
+enum class ShaderType {
+    CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
+    CWL_V_TRANSFORMATION_WITH_TEXTURES,
+    SKYBOX,
+    ABSOLUTE_POSITION_WITH_SOLID_COLOR,
+    TEXT
+};
 
 enum class ShaderVertexAttributeVariable {
     POSITION,
+    XY_POSITION,
     PASSTHROUGH_TEXTURE_COORDINATE,
 };
 
@@ -22,7 +29,10 @@ enum class ShaderUniformVariable {
     LOCAL_TO_WORLD,
     // Textures
     SKYBOX_TEXTURE_UNIT,
+    TEXT_TEXTURE_UNIT,
     COLOR,
+    RGB_COLOR,
+    RGBA_COLOR,
 };
 
 struct ShaderCreationInfo {
@@ -101,9 +111,11 @@ class ShaderCache {
 
     // TODO find a better place for these...
 
+    /// This assumes that you use a std::vector<glm::Vec[2,3,4]> for storing data
     const std::unordered_map<ShaderVertexAttributeVariable, GLVertexAttributeConfiguration>
         shader_vertex_attribute_to_glva_configuration = {
             {ShaderVertexAttributeVariable::POSITION, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
+            {ShaderVertexAttributeVariable::XY_POSITION, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
             {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
     };
 
@@ -114,15 +126,27 @@ class ShaderCache {
         {ShaderUniformVariable::LOCAL_TO_WORLD, "local_to_world"},
         // Textures
         {ShaderUniformVariable::SKYBOX_TEXTURE_UNIT, "skybox_texture_unit"},
-        {ShaderUniformVariable::COLOR, "color"}};
+        {ShaderUniformVariable::TEXT_TEXTURE_UNIT, "text_texture_unit"},
+        {ShaderUniformVariable::COLOR, "color"}, // will be deprecated for rgba_color
+        {ShaderUniformVariable::RGB_COLOR, "rgb_color"},
+        {ShaderUniformVariable::RGBA_COLOR, "rgba_color"},
+    };
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
+        {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
+         {"assets/shaders/CWL_v_transformation.vert", "assets/shaders/solid_color.frag"}},
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured.frag"}},
         {ShaderType::SKYBOX, {"assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag"}},
-        {ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
-         {"assets/shaders/absolute_position.vert", "assets/shaders/solid_color.frag"}},
+        {
+            ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
+            {"assets/shaders/absolute_position.vert", "assets/shaders/solid_color.frag"},
+        },
+        {
+            ShaderType::TEXT,
+            {"assets/shaders/text.vert", "assets/shaders/text.frag"},
+        },
     };
 
     // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
@@ -130,12 +154,22 @@ class ShaderCache {
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
              {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
+            {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
             {ShaderType::SKYBOX, {ShaderVertexAttributeVariable::POSITION}},
             {ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
+            /* { */
+            /*     ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR, */
+            /*     {ShaderVertexAttributeVariable::XY_POSITION, */
+            /*      ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}, */
+            /* }, */
+            {ShaderType::TEXT,
+             {ShaderVertexAttributeVariable::XY_POSITION,
+              ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
     };
 
     const std::unordered_map<ShaderVertexAttributeVariable, std::string> shader_vertex_attribute_variable_to_name = {
         {ShaderVertexAttributeVariable::POSITION, "position"},
+        {ShaderVertexAttributeVariable::XY_POSITION, "xy_position"},
         {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_coordinate"},
     };
 };
