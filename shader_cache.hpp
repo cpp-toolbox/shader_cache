@@ -12,6 +12,7 @@ enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
     CWL_V_TRANSFORMATION_WITH_TEXTURES,
     CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
+    CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
     SKYBOX,
     ABSOLUTE_POSITION_WITH_SOLID_COLOR,
     TEXT,
@@ -21,6 +22,7 @@ enum class ShaderVertexAttributeVariable {
     POSITION,
     XY_POSITION,
     PASSTHROUGH_TEXTURE_COORDINATE,
+    PASSTHROUGH_NORMAL,
 };
 
 enum class ShaderUniformVariable {
@@ -37,6 +39,7 @@ enum class ShaderUniformVariable {
     // Lighting 
     AMBIENT_LIGHT_STRENGTH, // float
     AMBIENT_LIGHT_COLOR, // vec3
+    DIFFUSE_LIGHT_POSITION, // vec3
 };
 
 struct ShaderCreationInfo {
@@ -120,6 +123,7 @@ class ShaderCache {
         shader_vertex_attribute_to_glva_configuration = {
             {ShaderVertexAttributeVariable::POSITION, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
             {ShaderVertexAttributeVariable::XY_POSITION, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
+            {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
             {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
     };
 
@@ -137,6 +141,7 @@ class ShaderCache {
         // Lighting
         {ShaderUniformVariable::AMBIENT_LIGHT_COLOR , "ambient_light_color"},
         {ShaderUniformVariable::AMBIENT_LIGHT_STRENGTH , "ambient_light_strength"},
+        {ShaderUniformVariable::DIFFUSE_LIGHT_POSITION , "diffuse_light_position"},
     };
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
@@ -148,6 +153,9 @@ class ShaderCache {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured_with_ambient_lighting.frag"}},
+        {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
+         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_and_normal_passthrough.vert",
+          "assets/shaders/textured_with_ambient_and_diffuse_lighting.frag"}},
         {ShaderType::SKYBOX, {"assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag"}},
         {
             ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
@@ -185,6 +193,7 @@ class ShaderCache {
         {ShaderVertexAttributeVariable::POSITION, "position"},
         {ShaderVertexAttributeVariable::XY_POSITION, "xy_position"},
         {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_coordinate"},
+        {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, "passthrough_normal"},
     };
 };
 
