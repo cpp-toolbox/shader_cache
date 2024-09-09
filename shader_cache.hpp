@@ -11,9 +11,10 @@
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
     CWL_V_TRANSFORMATION_WITH_TEXTURES,
+    CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
     SKYBOX,
     ABSOLUTE_POSITION_WITH_SOLID_COLOR,
-    TEXT
+    TEXT,
 };
 
 enum class ShaderVertexAttributeVariable {
@@ -24,15 +25,18 @@ enum class ShaderVertexAttributeVariable {
 
 enum class ShaderUniformVariable {
     // Transformations
-    CAMERA_TO_CLIP,
-    WORLD_TO_CAMERA,
-    LOCAL_TO_WORLD,
+    CAMERA_TO_CLIP, // mat4
+    WORLD_TO_CAMERA, // mat4
+    LOCAL_TO_WORLD, // mat4
     // Textures
     SKYBOX_TEXTURE_UNIT,
-    TEXT_TEXTURE_UNIT,
-    COLOR,
-    RGB_COLOR,
-    RGBA_COLOR,
+    TEXT_TEXTURE_UNIT, 
+    COLOR, // vec3 (should be removed eventually)
+    RGB_COLOR, // vec3
+    RGBA_COLOR, // vec4
+    // Lighting 
+    AMBIENT_LIGHT_STRENGTH, // float
+    AMBIENT_LIGHT_COLOR, // vec3
 };
 
 struct ShaderCreationInfo {
@@ -130,6 +134,9 @@ class ShaderCache {
         {ShaderUniformVariable::COLOR, "color"}, // will be deprecated for rgba_color
         {ShaderUniformVariable::RGB_COLOR, "rgb_color"},
         {ShaderUniformVariable::RGBA_COLOR, "rgba_color"},
+        // Lighting
+        {ShaderUniformVariable::AMBIENT_LIGHT_COLOR , "ambient_light_color"},
+        {ShaderUniformVariable::AMBIENT_LIGHT_STRENGTH , "ambient_light_strength"},
     };
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
@@ -138,6 +145,9 @@ class ShaderCache {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured.frag"}},
+        {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
+         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
+          "assets/shaders/textured_with_ambient_lighting.frag"}},
         {ShaderType::SKYBOX, {"assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag"}},
         {
             ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
@@ -147,9 +157,13 @@ class ShaderCache {
             ShaderType::TEXT,
             {"assets/shaders/text.vert", "assets/shaders/text.frag"},
         },
+        {
+            ShaderType::TEXT,
+            {"assets/shaders/text.vert", "assets/shaders/text.frag"},
+        },
     };
 
-    // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
+    // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically also make one of these for the uniforms as well
     std::unordered_map<ShaderType, std::vector<ShaderVertexAttributeVariable>>
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,

@@ -330,6 +330,8 @@ std::string shader_type_to_string(ShaderType type) {
     switch (type) {
     case ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES:
         return "CWL_V_TRANSFORMATION_WITH_TEXTURES";
+    case ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING:
+        return "CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING";
     case ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR:
         return "ABSOLUTE_POSITION_WITH_SOLID_COLOR";
     case ShaderType::SKYBOX:
