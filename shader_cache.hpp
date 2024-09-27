@@ -169,10 +169,6 @@ class ShaderCache {
             ShaderType::TEXT,
             {"assets/shaders/text.vert", "assets/shaders/text.frag"},
         },
-        {
-            ShaderType::TEXT,
-            {"assets/shaders/text.vert", "assets/shaders/text.frag"},
-        },
     };
 
     // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
