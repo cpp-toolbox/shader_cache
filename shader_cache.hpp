@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <glad/glad.h>
 #include "spdlog/spdlog.h"
+#include "../logger_component/logger_component.hpp"
 
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
@@ -27,18 +28,18 @@ enum class ShaderVertexAttributeVariable {
 
 enum class ShaderUniformVariable {
     // Transformations
-    CAMERA_TO_CLIP, // mat4
+    CAMERA_TO_CLIP,  // mat4
     WORLD_TO_CAMERA, // mat4
-    LOCAL_TO_WORLD, // mat4
+    LOCAL_TO_WORLD,  // mat4
     // Textures
     SKYBOX_TEXTURE_UNIT,
-    TEXT_TEXTURE_UNIT, 
-    COLOR, // vec3 (should be removed eventually)
-    RGB_COLOR, // vec3
+    TEXT_TEXTURE_UNIT,
+    COLOR,      // vec3 (should be removed eventually)
+    RGB_COLOR,  // vec3
     RGBA_COLOR, // vec4
-    // Lighting 
+    // Lighting
     AMBIENT_LIGHT_STRENGTH, // float
-    AMBIENT_LIGHT_COLOR, // vec3
+    AMBIENT_LIGHT_COLOR,    // vec3
     DIFFUSE_LIGHT_POSITION, // vec3
 };
 
@@ -77,7 +78,10 @@ struct GLVertexAttributeConfiguration {
 class ShaderCache {
   public:
     ShaderCache(std::vector<ShaderType> requested_shaders);
+    ShaderCache(std::vector<ShaderType> requested_shaders, std::shared_ptr<spdlog::sink_ptr> shared_sink);
     ~ShaderCache();
+
+    LoggerComponent logger_component;
 
     ShaderProgramInfo get_shader_program(ShaderType type) const;
     void use_shader_program(ShaderType type);
@@ -139,9 +143,9 @@ class ShaderCache {
         {ShaderUniformVariable::RGB_COLOR, "rgb_color"},
         {ShaderUniformVariable::RGBA_COLOR, "rgba_color"},
         // Lighting
-        {ShaderUniformVariable::AMBIENT_LIGHT_COLOR , "ambient_light_color"},
-        {ShaderUniformVariable::AMBIENT_LIGHT_STRENGTH , "ambient_light_strength"},
-        {ShaderUniformVariable::DIFFUSE_LIGHT_POSITION , "diffuse_light_position"},
+        {ShaderUniformVariable::AMBIENT_LIGHT_COLOR, "ambient_light_color"},
+        {ShaderUniformVariable::AMBIENT_LIGHT_STRENGTH, "ambient_light_strength"},
+        {ShaderUniformVariable::DIFFUSE_LIGHT_POSITION, "diffuse_light_position"},
     };
 
     std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
@@ -171,7 +175,8 @@ class ShaderCache {
         },
     };
 
-    // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically also make one of these for the uniforms as well
+    // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
+    // also make one of these for the uniforms as well
     std::unordered_map<ShaderType, std::vector<ShaderVertexAttributeVariable>>
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
