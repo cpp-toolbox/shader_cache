@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <glad/glad.h>
 #include "spdlog/spdlog.h"
-#include "../logger_component/logger_component.hpp"
+#include "sbpt_generated_includes.hpp"
 
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
@@ -78,7 +78,7 @@ struct GLVertexAttributeConfiguration {
 class ShaderCache {
   public:
     ShaderCache(std::vector<ShaderType> requested_shaders);
-    ShaderCache(std::vector<ShaderType> requested_shaders, std::shared_ptr<spdlog::sink_ptr> shared_sink);
+    ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks);
     ~ShaderCache();
 
     LoggerComponent logger_component;
@@ -101,18 +101,18 @@ class ShaderCache {
     get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) const;
     std::string get_uniform_name(ShaderUniformVariable uniform) const;
     GLint get_uniform_location(ShaderType type, ShaderUniformVariable uniform) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, int value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat) const;
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, int value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat);
 
   private:
     GLuint attach_shader(GLuint program, const std::string &path, GLenum shader_type);

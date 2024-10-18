@@ -21,9 +21,9 @@ ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders) {
     this->log_shader_program_info();
 }
 
-ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders, std::shared_ptr<spdlog::sink_ptr> shared_sink)
+ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks)
     : ShaderCache(requested_shaders) {
-    logger_component = LoggerComponent("shader cache", shared_sink);
+    logger_component = LoggerComponent("shader cache", sinks);
 }
 
 ShaderCache::~ShaderCache() {
@@ -221,85 +221,96 @@ GLint ShaderCache::get_uniform_location(ShaderType type, ShaderUniformVariable u
     return location;
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform1i(location, static_cast<int>(value));
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, int value) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, int value) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform1i(location, value);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float value) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float value) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform1f(location, value);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform2fv(location, 1, &vec[0]);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform2f(location, x, y);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform3fv(location, 1, &vec[0]);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform3f(location, x, y, z);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform4fv(location, 1, &vec[0]);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z,
-                              float w) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniform4f(location, x, y, z, w);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniformMatrix2fv(location, 1, GL_FALSE, &mat[0][0]);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniformMatrix3fv(location, 1, GL_FALSE, &mat[0][0]);
     }
 }
 
-void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat) const {
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat) {
+    use_shader_program(type);
     GLint location = get_uniform_location(type, uniform);
     if (location != -1) {
         glUniformMatrix4fv(location, 1, GL_FALSE, &mat[0][0]);
