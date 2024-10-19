@@ -9,6 +9,7 @@
 #include "spdlog/spdlog.h"
 #include "../logger_component/logger_component.hpp"
 
+// TODO: these will be extracted out and passing into the ShaderCache constructor
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
     CWL_V_TRANSFORMATION_WITH_TEXTURES,
@@ -17,6 +18,7 @@ enum class ShaderType {
     SKYBOX,
     ABSOLUTE_POSITION_WITH_SOLID_COLOR,
     TEXT,
+    ABSOLUTE_POSITION_WITH_COLORED_VERTEX
 };
 
 enum class ShaderVertexAttributeVariable {
@@ -24,6 +26,7 @@ enum class ShaderVertexAttributeVariable {
     XY_POSITION,
     PASSTHROUGH_TEXTURE_COORDINATE,
     PASSTHROUGH_NORMAL,
+    PASSTHROUGH_RGB_COLOR
 };
 
 enum class ShaderUniformVariable {
@@ -129,6 +132,7 @@ class ShaderCache {
             {ShaderVertexAttributeVariable::XY_POSITION, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
             {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
             {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
+            {ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
     };
 
     const std::unordered_map<ShaderUniformVariable, std::string> shader_uniform_variable_to_name = {
@@ -169,7 +173,8 @@ class ShaderCache {
             ShaderType::TEXT,
             {"assets/shaders/text.vert", "assets/shaders/text.frag"},
         },
-    };
+        {ShaderType::ABSOLUTE_POSITION_WITH_COLORED_VERTEX,
+         {"assets/shaders/colored_vertices.vert", "assets/shaders/colored_vertices.frag"}}};
 
     // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
     // also make one of these for the uniforms as well
@@ -188,14 +193,18 @@ class ShaderCache {
             {ShaderType::TEXT,
              {ShaderVertexAttributeVariable::XY_POSITION,
               ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
-    };
+            {ShaderType::ABSOLUTE_POSITION_WITH_COLORED_VERTEX,
+             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR}}};
 
     const std::unordered_map<ShaderVertexAttributeVariable, std::string> shader_vertex_attribute_variable_to_name = {
         {ShaderVertexAttributeVariable::POSITION, "position"},
         {ShaderVertexAttributeVariable::XY_POSITION, "xy_position"},
         {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_coordinate"},
         {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, "passthrough_normal"},
+        {ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR, "passthrough_rgb_color"},
     };
 };
+
+std::string shader_type_to_string(ShaderType type);
 
 #endif // SHADER_CACHE_HPP
