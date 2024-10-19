@@ -7,12 +7,13 @@
 #include <stdexcept>
 #include <glad/glad.h>
 #include "spdlog/spdlog.h"
-#include "../logger_component/logger_component.hpp"
+#include "sbpt_generated_includes.hpp"
 
 // TODO: these will be extracted out and passing into the ShaderCache constructor
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
     CWL_V_TRANSFORMATION_WITH_TEXTURES,
+    TRANSFORM_V_WITH_TEXTURES,
     CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
     CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
     SKYBOX,
@@ -34,6 +35,7 @@ enum class ShaderUniformVariable {
     CAMERA_TO_CLIP,  // mat4
     WORLD_TO_CAMERA, // mat4
     LOCAL_TO_WORLD,  // mat4
+    TRANSFORM,       // mat4
     // Textures
     SKYBOX_TEXTURE_UNIT,
     TEXT_TEXTURE_UNIT,
@@ -81,7 +83,7 @@ struct GLVertexAttributeConfiguration {
 class ShaderCache {
   public:
     ShaderCache(std::vector<ShaderType> requested_shaders);
-    ShaderCache(std::vector<ShaderType> requested_shaders, std::shared_ptr<spdlog::sink_ptr> shared_sink);
+    ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks);
     ~ShaderCache();
 
     LoggerComponent logger_component;
@@ -104,18 +106,18 @@ class ShaderCache {
     get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) const;
     std::string get_uniform_name(ShaderUniformVariable uniform) const;
     GLint get_uniform_location(ShaderType type, ShaderUniformVariable uniform) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, int value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float value) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat) const;
-    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat) const;
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, int value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float value);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec2 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat);
 
   private:
     GLuint attach_shader(GLuint program, const std::string &path, GLenum shader_type);
@@ -140,6 +142,7 @@ class ShaderCache {
         {ShaderUniformVariable::CAMERA_TO_CLIP, "camera_to_clip"},
         {ShaderUniformVariable::WORLD_TO_CAMERA, "world_to_camera"},
         {ShaderUniformVariable::LOCAL_TO_WORLD, "local_to_world"},
+        {ShaderUniformVariable::TRANSFORM, "transform"},
         // Textures
         {ShaderUniformVariable::SKYBOX_TEXTURE_UNIT, "skybox_texture_unit"},
         {ShaderUniformVariable::TEXT_TEXTURE_UNIT, "text_texture_unit"},
@@ -158,6 +161,8 @@ class ShaderCache {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured.frag"}},
+        {ShaderType::TRANSFORM_V_WITH_TEXTURES,
+         {"assets/shaders/transform_v_with_texture_coordinate_passthrough.vert", "assets/shaders/textured.frag"}},
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured_with_ambient_lighting.frag"}},
@@ -181,6 +186,8 @@ class ShaderCache {
     std::unordered_map<ShaderType, std::vector<ShaderVertexAttributeVariable>>
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
+             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
+            {ShaderType::TRANSFORM_V_WITH_TEXTURES,
              {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
             {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
             {ShaderType::SKYBOX, {ShaderVertexAttributeVariable::POSITION}},
