@@ -12,6 +12,7 @@
 enum class ShaderType {
     CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
     CWL_V_TRANSFORMATION_WITH_TEXTURES,
+    TRANSFORM_V_WITH_TEXTURES,
     CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
     CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
     SKYBOX,
@@ -31,6 +32,7 @@ enum class ShaderUniformVariable {
     CAMERA_TO_CLIP,  // mat4
     WORLD_TO_CAMERA, // mat4
     LOCAL_TO_WORLD,  // mat4
+    TRANSFORM,       // mat4
     // Textures
     SKYBOX_TEXTURE_UNIT,
     TEXT_TEXTURE_UNIT,
@@ -136,6 +138,7 @@ class ShaderCache {
         {ShaderUniformVariable::CAMERA_TO_CLIP, "camera_to_clip"},
         {ShaderUniformVariable::WORLD_TO_CAMERA, "world_to_camera"},
         {ShaderUniformVariable::LOCAL_TO_WORLD, "local_to_world"},
+        {ShaderUniformVariable::TRANSFORM, "transform"},
         // Textures
         {ShaderUniformVariable::SKYBOX_TEXTURE_UNIT, "skybox_texture_unit"},
         {ShaderUniformVariable::TEXT_TEXTURE_UNIT, "text_texture_unit"},
@@ -154,6 +157,8 @@ class ShaderCache {
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured.frag"}},
+        {ShaderType::TRANSFORM_V_WITH_TEXTURES,
+         {"assets/shaders/transform_v_with_texture_coordinate_passthrough.vert", "assets/shaders/textured.frag"}},
         {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
          {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
           "assets/shaders/textured_with_ambient_lighting.frag"}},
@@ -176,6 +181,8 @@ class ShaderCache {
     std::unordered_map<ShaderType, std::vector<ShaderVertexAttributeVariable>>
         shader_to_used_vertex_attribute_variables = {
             {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
+             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
+            {ShaderType::TRANSFORM_V_WITH_TEXTURES,
              {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
             {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
             {ShaderType::SKYBOX, {ShaderVertexAttributeVariable::POSITION}},
