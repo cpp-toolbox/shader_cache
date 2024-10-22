@@ -9,65 +9,6 @@
 #include "spdlog/spdlog.h"
 #include "sbpt_generated_includes.hpp"
 
-// TODO: these will be extracted out and passing into the ShaderCache constructor
-enum class ShaderType {
-    CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
-    CWL_V_TRANSFORMATION_WITH_TEXTURES,
-    TRANSFORM_V_WITH_TEXTURES,
-    CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
-    CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
-    SKYBOX,
-    ABSOLUTE_POSITION_WITH_SOLID_COLOR,
-    TEXT,
-    ABSOLUTE_POSITION_WITH_COLORED_VERTEX
-};
-
-enum class ShaderVertexAttributeVariable {
-    POSITION,
-    XY_POSITION,
-    PASSTHROUGH_TEXTURE_COORDINATE,
-    PASSTHROUGH_NORMAL,
-    PASSTHROUGH_RGB_COLOR
-};
-
-enum class ShaderUniformVariable {
-    // Transformations
-    CAMERA_TO_CLIP,  // mat4
-    WORLD_TO_CAMERA, // mat4
-    LOCAL_TO_WORLD,  // mat4
-    TRANSFORM,       // mat4
-    // Textures
-    SKYBOX_TEXTURE_UNIT,
-    TEXT_TEXTURE_UNIT,
-    COLOR,      // vec3 (should be removed eventually)
-    RGB_COLOR,  // vec3
-    RGBA_COLOR, // vec4
-    // Lighting
-    AMBIENT_LIGHT_STRENGTH, // float
-    AMBIENT_LIGHT_COLOR,    // vec3
-    DIFFUSE_LIGHT_POSITION, // vec3
-};
-
-struct ShaderCreationInfo {
-    std::string vertex_path;
-    std::string fragment_path;
-    std::string geometry_path;
-};
-
-struct ShaderProgramInfo {
-    GLuint id;
-    //    // the location of the vertex attribute in the source file
-    //    std::unordered_map<ShaderVertexAttributeVariable, GLint> vertex_attribute_to_location;
-};
-
-struct GLVertexAttributeConfiguration {
-    GLint components_per_vertex;
-    GLenum data_type_of_component;
-    GLboolean normalize;
-    GLsizei stride;
-    GLvoid *pointer_to_start_of_data;
-};
-
 /**
  * \brief facilitates simple and robust interaction with shaders
  *
@@ -85,6 +26,7 @@ class ShaderCache {
     ShaderCache(std::vector<ShaderType> requested_shaders);
     ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks);
     ~ShaderCache();
+    ShaderStandard shader_standard;
 
     LoggerComponent logger_component;
 
@@ -124,92 +66,6 @@ class ShaderCache {
     void link_program(GLuint program);
 
     std::unordered_map<ShaderType, ShaderProgramInfo> created_shaders;
-
-    // TODO find a better place for these...
-
-    /// This assumes that you use a std::vector<glm::Vec[2,3,4]> for storing data
-    const std::unordered_map<ShaderVertexAttributeVariable, GLVertexAttributeConfiguration>
-        shader_vertex_attribute_to_glva_configuration = {
-            {ShaderVertexAttributeVariable::POSITION, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
-            {ShaderVertexAttributeVariable::XY_POSITION, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
-            {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
-            {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, {2, GL_FLOAT, GL_FALSE, 0, (void *)0}},
-            {ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR, {3, GL_FLOAT, GL_FALSE, 0, (void *)0}},
-    };
-
-    const std::unordered_map<ShaderUniformVariable, std::string> shader_uniform_variable_to_name = {
-        // Transformations
-        {ShaderUniformVariable::CAMERA_TO_CLIP, "camera_to_clip"},
-        {ShaderUniformVariable::WORLD_TO_CAMERA, "world_to_camera"},
-        {ShaderUniformVariable::LOCAL_TO_WORLD, "local_to_world"},
-        {ShaderUniformVariable::TRANSFORM, "transform"},
-        // Textures
-        {ShaderUniformVariable::SKYBOX_TEXTURE_UNIT, "skybox_texture_unit"},
-        {ShaderUniformVariable::TEXT_TEXTURE_UNIT, "text_texture_unit"},
-        {ShaderUniformVariable::COLOR, "color"}, // will be deprecated for rgba_color
-        {ShaderUniformVariable::RGB_COLOR, "rgb_color"},
-        {ShaderUniformVariable::RGBA_COLOR, "rgba_color"},
-        // Lighting
-        {ShaderUniformVariable::AMBIENT_LIGHT_COLOR, "ambient_light_color"},
-        {ShaderUniformVariable::AMBIENT_LIGHT_STRENGTH, "ambient_light_strength"},
-        {ShaderUniformVariable::DIFFUSE_LIGHT_POSITION, "diffuse_light_position"},
-    };
-
-    std::unordered_map<ShaderType, ShaderCreationInfo> shader_catalog = {
-        {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR,
-         {"assets/shaders/CWL_v_transformation.vert", "assets/shaders/solid_color.frag"}},
-        {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
-         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
-          "assets/shaders/textured.frag"}},
-        {ShaderType::TRANSFORM_V_WITH_TEXTURES,
-         {"assets/shaders/transform_v_with_texture_coordinate_passthrough.vert", "assets/shaders/textured.frag"}},
-        {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING,
-         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_passthrough.vert",
-          "assets/shaders/textured_with_ambient_lighting.frag"}},
-        {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_AND_DIFFUSE_LIGHTING,
-         {"assets/shaders/CWL_v_transformation_with_texture_coordinate_and_normal_passthrough.vert",
-          "assets/shaders/textured_with_ambient_and_diffuse_lighting.frag"}},
-        {ShaderType::SKYBOX, {"assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag"}},
-        {
-            ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR,
-            {"assets/shaders/absolute_position.vert", "assets/shaders/solid_color.frag"},
-        },
-        {
-            ShaderType::TEXT,
-            {"assets/shaders/text.vert", "assets/shaders/text.frag"},
-        },
-        {ShaderType::ABSOLUTE_POSITION_WITH_COLORED_VERTEX,
-         {"assets/shaders/colored_vertices.vert", "assets/shaders/colored_vertices.frag"}}};
-
-    // TODO: This should probably be automated at some point by reading the file and checking for the vars automatically
-    // also make one of these for the uniforms as well
-    std::unordered_map<ShaderType, std::vector<ShaderVertexAttributeVariable>>
-        shader_to_used_vertex_attribute_variables = {
-            {ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES,
-             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
-            {ShaderType::TRANSFORM_V_WITH_TEXTURES,
-             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
-            {ShaderType::CWL_V_TRANSFORMATION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
-            {ShaderType::SKYBOX, {ShaderVertexAttributeVariable::POSITION}},
-            {ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR, {ShaderVertexAttributeVariable::POSITION}},
-            /* { */
-            /*     ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR, */
-            /*     {ShaderVertexAttributeVariable::XY_POSITION, */
-            /*      ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}, */
-            /* }, */
-            {ShaderType::TEXT,
-             {ShaderVertexAttributeVariable::XY_POSITION,
-              ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE}},
-            {ShaderType::ABSOLUTE_POSITION_WITH_COLORED_VERTEX,
-             {ShaderVertexAttributeVariable::POSITION, ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR}}};
-
-    const std::unordered_map<ShaderVertexAttributeVariable, std::string> shader_vertex_attribute_variable_to_name = {
-        {ShaderVertexAttributeVariable::POSITION, "position"},
-        {ShaderVertexAttributeVariable::XY_POSITION, "xy_position"},
-        {ShaderVertexAttributeVariable::PASSTHROUGH_TEXTURE_COORDINATE, "passthrough_texture_coordinate"},
-        {ShaderVertexAttributeVariable::PASSTHROUGH_NORMAL, "passthrough_normal"},
-        {ShaderVertexAttributeVariable::PASSTHROUGH_RGB_COLOR, "passthrough_rgb_color"},
-    };
 };
 
 std::string shader_type_to_string(ShaderType type);

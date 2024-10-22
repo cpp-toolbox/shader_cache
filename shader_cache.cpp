@@ -57,8 +57,8 @@ void ShaderCache::create_shader_program(ShaderType type) {
     bool logging = logger_component.logging_enabled;
     auto logger = logger_component.get_logger();
 
-    auto it = shader_catalog.find(type);
-    if (it == shader_catalog.end()) {
+    auto it = shader_standard.shader_catalog.find(type);
+    if (it == shader_standard.shader_catalog.end()) {
         throw std::runtime_error("Shader type not found");
     }
 
@@ -151,8 +151,8 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
 }
 
 std::string ShaderCache::get_uniform_name(ShaderUniformVariable uniform) const {
-    auto it = shader_uniform_variable_to_name.find(uniform);
-    if (it != shader_uniform_variable_to_name.end()) {
+    auto it = shader_standard.shader_uniform_variable_to_name.find(uniform);
+    if (it != shader_standard.shader_uniform_variable_to_name.end()) {
         return it->second;
     }
 
@@ -166,7 +166,7 @@ std::string ShaderCache::get_uniform_name(ShaderUniformVariable uniform) const {
 GLVertexAttributeConfiguration ShaderCache::get_gl_vertex_attribute_configuration_for_vertex_attribute_variable(
     ShaderVertexAttributeVariable shader_vertex_attribute_variable) const {
     try {
-        return shader_vertex_attribute_to_glva_configuration.at(shader_vertex_attribute_variable);
+        return shader_standard.shader_vertex_attribute_to_glva_configuration.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
 
         if (logger_component.logging_enabled) {
@@ -181,7 +181,7 @@ GLVertexAttributeConfiguration ShaderCache::get_gl_vertex_attribute_configuratio
 std::vector<ShaderVertexAttributeVariable>
 ShaderCache::get_used_vertex_attribute_variables_for_shader(ShaderType type) const {
     try {
-        return shader_to_used_vertex_attribute_variables.at(type);
+        return shader_standard.shader_to_used_vertex_attribute_variables.at(type);
     } catch (const std::out_of_range &e) {
 
         if (logger_component.logging_enabled) {
@@ -197,7 +197,7 @@ std::string
 ShaderCache::get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) const {
     try {
         // Use `at` to access the name directly
-        return shader_vertex_attribute_variable_to_name.at(shader_vertex_attribute_variable);
+        return shader_standard.shader_vertex_attribute_variable_to_name.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
         if (logger_component.logging_enabled) {
             logger_component.get_logger()->error(
@@ -372,22 +372,6 @@ void ShaderCache::link_program(GLuint program) {
     }
 }
 
-// Function to convert ShaderType to string
-std::string shader_type_to_string(ShaderType type) {
-    switch (type) {
-    case ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES:
-        return "CWL_V_TRANSFORMATION_WITH_TEXTURES";
-    case ShaderType::CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING:
-        return "CWL_V_TRANSFORMATION_WITH_TEXTURES_AMBIENT_LIGHTING";
-    case ShaderType::ABSOLUTE_POSITION_WITH_SOLID_COLOR:
-        return "ABSOLUTE_POSITION_WITH_SOLID_COLOR";
-    case ShaderType::SKYBOX:
-        return "SKYBOX";
-    default:
-        return "Unknown Shader Type";
-    }
-}
-
 void ShaderCache::log_shader_program_info() const {
 
     if (logger_component.logging_enabled) {
@@ -397,8 +381,8 @@ void ShaderCache::log_shader_program_info() const {
 
     for (const auto &[shader_type, shader_info] : created_shaders) {
         if (logger_component.logging_enabled) {
-            logger_component.get_logger()->info("Shader Type: {}, Program ID: {}", shader_type_to_string(shader_type),
-                                                shader_info.id);
+            logger_component.get_logger()->info("Shader Type: {}, Program ID: {}",
+                                                shader_standard.shader_type_to_name.at(shader_type), shader_info.id);
         }
     }
 }
