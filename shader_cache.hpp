@@ -6,7 +6,7 @@
 #include <string>
 #include <stdexcept>
 #include <glad/glad.h>
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 #include "sbpt_generated_includes.hpp"
 
 /**
