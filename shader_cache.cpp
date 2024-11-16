@@ -13,17 +13,15 @@
  * \pre there is an active opengl context, otherwise undefined behavior
  * \param requested_shaders out of the passed in which ones to actually create on instantiation
  */
-ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders) {
-    // Initialize shader programs based on the predefined mapping
+ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks) {
+    if (not sinks.empty()) {
+        logger_component = LoggerComponent("shader cache", sinks);
+    }
+
     for (const auto &shader_type : requested_shaders) {
         create_shader_program(shader_type);
     }
     this->log_shader_program_info();
-}
-
-ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks)
-    : ShaderCache(requested_shaders) {
-    logger_component = LoggerComponent("shader cache", sinks);
 }
 
 ShaderCache::~ShaderCache() {
@@ -144,8 +142,13 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
     // data is tightly packed, OpenGL calculates the stride as 2 * sizeof(GL_FLOAT). This value is equivalent to
     // the size of the attribute data (in bytes) because the next attribute in the buffer starts right after the
     // previous one without any additional padding or interleaved data.
-    glVertexAttribPointer(vertex_attribute_location, config.components_per_vertex, config.data_type_of_component,
-                          config.normalize, config.stride, config.pointer_to_start_of_data);
+    if (config.data_type_of_component != GL_INT) {
+        glVertexAttribPointer(vertex_attribute_location, config.components_per_vertex, config.data_type_of_component,
+                              config.normalize, config.stride, config.pointer_to_start_of_data);
+    } else {
+        glVertexAttribIPointer(vertex_attribute_location, config.components_per_vertex, config.data_type_of_component,
+                               config.stride, config.pointer_to_start_of_data);
+    }
 
     glBindVertexArray(0);
 }
@@ -368,6 +371,10 @@ void ShaderCache::link_program(GLuint program) {
 
         if (logger_component.logging_enabled) {
             logger_component.get_logger()->error("ERROR::PROGRAM::LINKING_FAILED: {}", info_log);
+        }
+    } else {
+        if (logger_component.logging_enabled) {
+            logger_component.get_logger()->info("Successfully linked shader program");
         }
     }
 }

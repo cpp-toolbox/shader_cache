@@ -23,8 +23,7 @@
  */
 class ShaderCache {
   public:
-    ShaderCache(std::vector<ShaderType> requested_shaders);
-    ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks);
+    ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks = {});
     ~ShaderCache();
     ShaderStandard shader_standard;
 
