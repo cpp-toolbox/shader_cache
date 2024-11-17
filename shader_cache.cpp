@@ -1,6 +1,7 @@
 #include "shader_cache.hpp"
 #include "sbpt_generated_includes.hpp"
 
+#include <iostream>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -142,7 +143,8 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
     // data is tightly packed, OpenGL calculates the stride as 2 * sizeof(GL_FLOAT). This value is equivalent to
     // the size of the attribute data (in bytes) because the next attribute in the buffer starts right after the
     // previous one without any additional padding or interleaved data.
-    if (config.data_type_of_component != GL_INT) {
+
+    if (config.data_type_of_component != GL_INT && config.data_type_of_component != GL_UNSIGNED_INT) {
         glVertexAttribPointer(vertex_attribute_location, config.components_per_vertex, config.data_type_of_component,
                               config.normalize, config.stride, config.pointer_to_start_of_data);
     } else {
