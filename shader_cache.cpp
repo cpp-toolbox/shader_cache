@@ -49,6 +49,19 @@ void ShaderCache::use_shader_program(ShaderType type) {
     glUseProgram(shader_info.id);
 }
 
+void ShaderCache::print_out_active_uniforms_in_shader(ShaderType type) {
+
+    ShaderProgramInfo shader_info = get_shader_program(type);
+    GLint num_uniforms;
+    glGetProgramiv(shader_info.id, GL_ACTIVE_UNIFORMS, &num_uniforms);
+    for (GLint i = 0; i < num_uniforms; i++) {
+        char name[256];
+        GLsizei length;
+        glGetActiveUniform(shader_info.id, i, sizeof(name), &length, NULL, NULL, name);
+        std::cout << "Uniform " << i << ": " << name << std::endl;
+    }
+}
+
 void ShaderCache::stop_using_shader_program() { glUseProgram(0); }
 
 void ShaderCache::create_shader_program(ShaderType type) {

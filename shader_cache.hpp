@@ -59,6 +59,7 @@ class ShaderCache {
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat4 &mat);
+    void print_out_active_uniforms_in_shader(ShaderType type);
 
   private:
     GLuint attach_shader(GLuint program, const std::string &path, GLenum shader_type);
