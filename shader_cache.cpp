@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -288,6 +289,25 @@ void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, co
     if (location != -1) {
         glUniform4fv(location, 1, &vec[0]);
     }
+}
+
+void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, const std::vector<glm::vec4> &values) {
+    use_shader_program(type);
+    GLint location = get_uniform_location(type, uniform);
+    if (location == -1) {
+        fprintf(stderr, "Uniform '%s' not found in shader program.\n", get_uniform_name(uniform).c_str());
+        return;
+    }
+
+    // Ensure the vector is not empty to avoid invalid calls
+    if (values.empty()) {
+        fprintf(stderr, "Warning: Attempting to set an empty vec4 array for uniform '%s'.\n",
+                get_uniform_name(uniform).c_str());
+        return;
+    }
+
+    // Set the uniform array of vec4s
+    glUniform4fv(location, static_cast<GLsizei>(values.size()), glm::value_ptr(values[0]));
 }
 
 void ShaderCache::set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w) {
