@@ -47,6 +47,7 @@ class ShaderCache {
     get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) const;
     std::string get_uniform_name(ShaderUniformVariable uniform) const;
     GLint get_uniform_location(ShaderType type, ShaderUniformVariable uniform) const;
+
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, bool value);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, int value);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, float value);
@@ -55,6 +56,7 @@ class ShaderCache {
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec3 &vec);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::vec4 &vec);
+    void set_uniform(ShaderType type, ShaderUniformVariable uniform, const std::vector<glm::vec4> &values);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, float x, float y, float z, float w);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat2 &mat);
     void set_uniform(ShaderType type, ShaderUniformVariable uniform, const glm::mat3 &mat);
