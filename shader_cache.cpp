@@ -42,7 +42,9 @@ ShaderProgramInfo ShaderCache::get_shader_program(ShaderType type) const {
     if (it != created_shaders.end()) {
         return it->second;
     }
-    throw std::runtime_error("Shader program not found");
+
+    // Use shader_type_to_string to include the shader type in the error message
+    throw std::runtime_error("Shader program not found for type: " + shader_type_to_string(type));
 }
 
 void ShaderCache::use_shader_program(ShaderType type) {
