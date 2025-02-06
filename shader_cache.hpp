@@ -18,8 +18,6 @@
  * when you see a variable you will know exactly what it standard for. With these features it makes it hard to mess up
  * when using shaders
  *
- * \usage See how it it used in DiffuseTexturedDiv and BaseDiv
- *
  */
 class ShaderCache {
   public:
