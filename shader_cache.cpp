@@ -2,9 +2,6 @@
 #include "sbpt_generated_includes.hpp"
 
 #include <iostream>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
@@ -15,10 +12,7 @@
  * \pre there is an active opengl context, otherwise undefined behavior
  * \param requested_shaders out of the passed in which ones to actually create on instantiation
  */
-ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders, const std::vector<spdlog::sink_ptr> &sinks) {
-    if (not sinks.empty()) {
-        logger_component = LoggerComponent("shader cache", sinks);
-    }
+ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders) {
 
     for (const auto &shader_type : requested_shaders) {
         create_shader_program(shader_type);
@@ -69,17 +63,12 @@ void ShaderCache::stop_using_shader_program() { glUseProgram(0); }
 
 void ShaderCache::create_shader_program(ShaderType type) {
 
-    bool logging = logger_component.logging_enabled;
-    auto logger = logger_component.get_logger();
-
     auto it = shader_standard.shader_catalog.find(type);
     if (it == shader_standard.shader_catalog.end()) {
         throw std::runtime_error("Shader type not found");
     }
 
-    if (logging) {
-        logger->info("creating new shader program");
-    }
+    console_logger.info("creating new shader program");
 
     const ShaderCreationInfo &shader_info = it->second;
 
@@ -147,9 +136,7 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
         get_gl_vertex_attribute_configuration_for_vertex_attribute_variable(shader_vertex_attribute_variable);
     std::string svav_name = get_vertex_attribute_variable_name(shader_vertex_attribute_variable);
 
-    if (logger_component.logging_enabled) {
-        logger_component.get_logger()->info("Binding vertex attribute {}", svav_name);
-    }
+    console_logger.info("Binding vertex attribute {}", svav_name);
 
     GLuint vertex_attribute_location = glGetAttribLocation(shader_program_info.id, svav_name.c_str());
     glEnableVertexAttribArray(vertex_attribute_location);
@@ -171,73 +158,62 @@ void ShaderCache::configure_vertex_attributes_for_drawables_vao(
     glBindVertexArray(0);
 }
 
-std::string ShaderCache::get_uniform_name(ShaderUniformVariable uniform) const {
+std::string ShaderCache::get_uniform_name(ShaderUniformVariable uniform) {
     auto it = shader_standard.shader_uniform_variable_to_name.find(uniform);
     if (it != shader_standard.shader_uniform_variable_to_name.end()) {
         return it->second;
     }
 
-    if (logger_component.logging_enabled) {
-        logger_component.get_logger()->warn("Uniform variable enum {} not found in allowed names.",
-                                            static_cast<int>(uniform));
-    }
+    console_logger.warn("Uniform variable enum {} not found in allowed names.", static_cast<int>(uniform));
     return "";
 }
 
 GLVertexAttributeConfiguration ShaderCache::get_gl_vertex_attribute_configuration_for_vertex_attribute_variable(
-    ShaderVertexAttributeVariable shader_vertex_attribute_variable) const {
+    ShaderVertexAttributeVariable shader_vertex_attribute_variable) {
     try {
         return shader_standard.shader_vertex_attribute_to_glva_configuration.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
 
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error(
-                "The specified shader vertex attribute variable doesn't have a gl vertex attribute configuration: {}",
-                e.what());
-        }
+        console_logger.error(
+            "The specified shader vertex attribute variable doesn't have a gl vertex attribute configuration: {}",
+            e.what());
         throw;
     }
 }
 
 std::vector<ShaderVertexAttributeVariable>
-ShaderCache::get_used_vertex_attribute_variables_for_shader(ShaderType type) const {
+ShaderCache::get_used_vertex_attribute_variables_for_shader(ShaderType type) {
     try {
         return shader_standard.shader_to_used_vertex_attribute_variables.at(type);
     } catch (const std::out_of_range &e) {
 
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error(
-                "The specified shader type doesn't have have any vertex attribute variables, please add some: {}",
-                e.what());
-        }
+        console_logger.error(
+            "The specified shader type doesn't have have any vertex attribute variables, please add some: {}",
+            e.what());
         throw;
     }
 }
 
 std::string
-ShaderCache::get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) const {
+ShaderCache::get_vertex_attribute_variable_name(ShaderVertexAttributeVariable shader_vertex_attribute_variable) {
     try {
         // Use `at` to access the name directly
         return shader_standard.shader_vertex_attribute_variable_to_name.at(shader_vertex_attribute_variable);
     } catch (const std::out_of_range &e) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error(
-                "The specified vertex attribute variable doesn't have a name in the mapping: {}", e.what());
-        }
+
+        console_logger.error("The specified vertex attribute variable doesn't have a name in the mapping: {}",
+                             e.what());
+
         // Rethrow the exception to continue propagating it upwards
         throw;
     }
 }
 
-GLint ShaderCache::get_uniform_location(ShaderType type, ShaderUniformVariable uniform) const {
+GLint ShaderCache::get_uniform_location(ShaderType type, ShaderUniformVariable uniform) {
     ShaderProgramInfo shader_info = get_shader_program(type);
     GLint location = glGetUniformLocation(shader_info.id, get_uniform_name(uniform).c_str());
     if (location == -1) {
-
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("Uniform '{}' not found in shader program.",
-                                                 get_uniform_name(uniform));
-        }
+        console_logger.error("Uniform '{}' not found in shader program.", get_uniform_name(uniform));
     }
     return location;
 }
@@ -371,10 +347,7 @@ GLuint ShaderCache::attach_shader(GLuint program, const std::string &path, GLenu
 
         shader_code = shader_stream.str();
     } catch (const std::ifstream::failure &e) {
-
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}: {}", path, e.what());
-        }
+        console_logger.error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}: {}", path, e.what());
     }
 
     GLuint shader = glCreateShader(shader_type);
@@ -387,10 +360,7 @@ GLuint ShaderCache::attach_shader(GLuint program, const std::string &path, GLenu
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 1024, nullptr, info_log);
-
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("ERROR::SHADER::COMPILATION_FAILED {}: {}", path, info_log);
-        }
+        console_logger.error("ERROR::SHADER::COMPILATION_FAILED {}: {}", path, info_log);
     }
 
     glAttachShader(program, shader);
@@ -405,28 +375,19 @@ void ShaderCache::link_program(GLuint program) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, 1024, nullptr, info_log);
-
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("ERROR::PROGRAM::LINKING_FAILED: {}", info_log);
-        }
+        console_logger.error("ERROR::PROGRAM::LINKING_FAILED: {}", info_log);
     } else {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->info("Successfully linked shader program");
-        }
+        console_logger.info("Successfully linked shader program");
     }
 }
 
-void ShaderCache::log_shader_program_info() const {
+void ShaderCache::log_shader_program_info() {
 
-    if (logger_component.logging_enabled) {
-        logger_component.get_logger()->info("Logging Created Shaders:");
-        logger_component.get_logger()->info("Total shaders: {}", created_shaders.size());
-    }
+    console_logger.info("Logging Created Shaders:");
+    console_logger.info("Total shaders: {}", created_shaders.size());
 
     for (const auto &[shader_type, shader_info] : created_shaders) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->info("Shader Type: {}, Program ID: {}",
-                                                shader_standard.shader_type_to_name.at(shader_type), shader_info.id);
-        }
+        console_logger.info("Shader Type: {}, Program ID: {}", shader_standard.shader_type_to_name.at(shader_type),
+                            shader_info.id);
     }
 }
