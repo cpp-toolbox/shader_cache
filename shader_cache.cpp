@@ -1,5 +1,4 @@
 #include "shader_cache.hpp"
-#include "sbpt_generated_includes.hpp"
 
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
