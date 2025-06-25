@@ -5,7 +5,14 @@
 #include <unordered_map>
 #include <string>
 #include <stdexcept>
+
 #include <glad/glad.h>
+<<<<<<< Updated upstream
+=======
+#include <GLFW/glfw3.h>
+
+#include <spdlog/spdlog.h>
+>>>>>>> Stashed changes
 #include "sbpt_generated_includes.hpp"
 
 /**
