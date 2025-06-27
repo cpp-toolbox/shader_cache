@@ -2,27 +2,22 @@
 #define SHADER_CACHE_HPP
 
 #include <glm/glm.hpp>
-#include <unordered_map>
-#include <string>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 
-#include <glad/glad.h>
-<<<<<<< Updated upstream
-=======
-#include <GLFW/glfw3.h>
-
-#include <spdlog/spdlog.h>
->>>>>>> Stashed changes
 #include "sbpt_generated_includes.hpp"
 
 /**
  * \brief facilitates simple and robust interaction with shaders
  *
- * \details a shader cache is a tool which helps manage shaders in a sane way, firstly the user defines what types of
- * shaders by passing in the requested shaders from the shader catalog, then that shader can be selected easily, it also
- * adheres to the cpp_toolbox standard for naming variables in shader files, this makes it easy to read shader files as
- * when you see a variable you will know exactly what it standard for. With these features it makes it hard to mess up
- * when using shaders
+ * \details a shader cache is a tool which helps manage shaders in a sane way,
+ * firstly the user defines what types of shaders by passing in the requested
+ * shaders from the shader catalog, then that shader can be selected easily, it
+ * also adheres to the cpp_toolbox standard for naming variables in shader
+ * files, this makes it easy to read shader files as when you see a variable you
+ * will know exactly what it standard for. With these features it makes it hard
+ * to mess up when using shaders
  *
  */
 class ShaderCache {
@@ -31,7 +26,7 @@ class ShaderCache {
     ~ShaderCache();
     ShaderStandard shader_standard;
 
-    ConsoleLogger console_logger;
+    ConsoleLogger logger = ConsoleLogger("console_logger");
 
     ShaderProgramInfo get_shader_program(ShaderType type) const;
     void use_shader_program(ShaderType type);
