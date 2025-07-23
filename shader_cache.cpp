@@ -12,11 +12,10 @@
  * \param requested_shaders out of the passed in which ones to actually create on instantiation
  */
 ShaderCache::ShaderCache(std::vector<ShaderType> requested_shaders) {
-
     logger.debug("start of constructor");
 
     for (const auto &shader_type : requested_shaders) {
-        create_shader_program(shader_type);
+        register_shader_program(shader_type);
     }
     this->log_shader_program_info();
     logger.info("successfully initialized");
@@ -39,6 +38,7 @@ ShaderProgramInfo ShaderCache::get_shader_program(ShaderType type) const {
         return it->second;
     }
 
+    // logger.error("Shader program not found for type: {} ", shader_type_to_string(type));
     // Use shader_type_to_string to include the shader type in the error message
     throw std::runtime_error("Shader program not found for type: " + shader_type_to_string(type));
 }
@@ -63,7 +63,7 @@ void ShaderCache::print_out_active_uniforms_in_shader(ShaderType type) {
 
 void ShaderCache::stop_using_shader_program() { glUseProgram(0); }
 
-void ShaderCache::create_shader_program(ShaderType type) {
+void ShaderCache::register_shader_program(ShaderType type) {
 
     auto it = shader_standard.shader_catalog.find(type);
     if (it == shader_standard.shader_catalog.end()) {

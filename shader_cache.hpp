@@ -31,7 +31,7 @@ class ShaderCache {
     ShaderProgramInfo get_shader_program(ShaderType type) const;
     void use_shader_program(ShaderType type);
     void stop_using_shader_program();
-    void create_shader_program(ShaderType type);
+    void register_shader_program(ShaderType type);
 
     void configure_vertex_attributes_for_drawables_vao(GLuint vertex_attribute_object, GLuint vertex_buffer_object,
                                                        ShaderType type,
