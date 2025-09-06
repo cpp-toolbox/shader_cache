@@ -26,7 +26,7 @@ class ShaderCache {
     ~ShaderCache();
     ShaderStandard shader_standard;
 
-    ConsoleLogger logger = ConsoleLogger("shader_cache");
+    Logger logger = Logger("shader_cache");
 
     ShaderProgramInfo get_shader_program(ShaderType type) const;
     void use_shader_program(ShaderType type);
